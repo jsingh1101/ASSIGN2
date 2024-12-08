@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 '''
 OPS445 Assignment 2
 Program: assignment2.py 
@@ -89,3 +90,79 @@ if __name__ == "__main__":
     # percent to graph
     # take total our of total system memory? or total used memory? total used memory.
     # percent to graph.
+=======
+import argparse
+import subprocess
+import os
+
+def get_memory_info():
+    """Get total and used memory from /proc/meminfo."""
+    with open("/proc/meminfo", "r") as f:
+        meminfo = {line.split(":")[0]: int(line.split()[1]) for line in f}
+    total_mem = meminfo["MemTotal"]  # Total memory in kB
+    avail_mem = meminfo["MemAvailable"]  # Available memory in kB
+    used_mem = total_mem - avail_mem
+    return total_mem, used_mem
+
+def get_pids(program_name):
+    """Get PIDs for a given program using pidof."""
+    try:
+        result = subprocess.run(["pidof", program_name], capture_output=True, text=True, check=True)
+        return list(map(int, result.stdout.strip().split()))
+    except subprocess.CalledProcessError:
+        return []
+
+def get_process_memory(pid):
+    """Calculate the total Rss memory for a process."""
+    rss_total = 0
+    try:
+        with open(f"/proc/{pid}/smaps", "r") as f:
+            for line in f:
+                if line.startswith("Rss:"):
+                    rss_total += int(line.split()[1])  # Add Rss in kB
+    except FileNotFoundError:
+        pass  # Process might have terminated
+    return rss_total
+
+def to_human_readable(kb):
+    """Convert memory from kB to GiB."""
+    gib = kb / (1024 * 1024)
+    return f"{gib:.2f} GiB"
+
+def display_bar(label, used, total, length=20):
+    """Display a memory usage bar."""
+    percentage = used / total
+    bar = "#" * int(percentage * length)
+    bar = bar.ljust(length)
+    print(f"{label:<15} [{bar} | {int(percentage * 100)}%] {used}/{total} kB")
+
+def main():
+    parser = argparse.ArgumentParser(description="Display memory usage for processes.")
+    parser.add_argument("program", nargs="?", default=None, help="Program name to filter processes")
+    parser.add_argument("-H", "--human-readable", action="store_true", help="Show memory in human-readable format")
+    parser.add_argument("-l", "--length", type=int, default=20, help="Length of the bar graph")
+    args = parser.parse_args()
+
+    total_mem, used_mem = get_memory_info()
+
+    if not args.program:
+        # Show system memory usage
+        display_bar("Memory", used_mem, total_mem, args.length)
+    else:
+        # Show memory usage for each process of the given program
+        pids = get_pids(args.program)
+        if not pids:
+            print(f"No running processes found for {args.program}")
+            return
+
+        total_rss = 0
+        for pid in pids:
+            rss = get_process_memory(pid)
+            total_rss += rss
+            label = str(pid)
+            display_bar(label, rss, total_mem, args.length)
+
+        display_bar(args.program, total_rss, total_mem, args.length)
+
+if __name__ == "__main__":
+    main()
