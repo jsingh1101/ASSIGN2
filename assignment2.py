@@ -4,8 +4,8 @@
 '''
 OPS445 Assignment 2
 Program: assignment2.py 
-Author: "Student Name"
-Semester: "Enter Winter/Summer/Fall Year"
+Author: "Jashanpreet Singh"
+Semester: "Winter"
 
 The python code in this file is original work written by
 "Student Name". No code in this file is copied from any other source 
@@ -15,7 +15,6 @@ with anyone or anything except for submission for grading.
 I understand that the Academic Honesty Policy will be enforced and 
 violators will be reported and appropriate action will be taken.
 
-Description: <Enter your documentation here>
 
 '''
 
